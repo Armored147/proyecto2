@@ -2,9 +2,9 @@
 
 ## Estudiantes
 - **Isis Catitza Amaya Arbeláez**, [icamayaa@eafit.edu.co](mailto:icamayaa@eafit.edu.co)
-- **Santiago Alberto Rozo Silva**, [sarozos@eafit.edu.co](mailto:sarozos@eafit.edu.co)
-- **Santiago Alberto Rozo Silva**, [sarozos@eafit.edu.co](mailto:sarozos@eafit.edu.co)
-- **Santiago Alberto Rozo Silva**, [sarozos@eafit.edu.co](mailto:sarozos@eafit.edu.co)
+- **Samuel Oviedo Paz**, [soviedop@eafit.edu.co](mailto:soviedop@eafit.edu.co)
+- **Samuel Acosta Aristizabal**, [sacostaa1@eafit.edu.co](mailto:sacostaa1@eafit.edu.co)
+- **Nicolás Tovar Almanza**, [ntovara@eafit.brightspace.com](mailto:ntovara@eafit.brightspace.com)
   
 ## Profesor
 - **Álvaro Enrique Ospina Sanjuan**, [aeospinas@eafit.edu.co](mailto:aeospinas@eafit.edu.co)
