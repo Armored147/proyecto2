@@ -33,7 +33,7 @@ Se cumplieron la mayoría de los requisitos del proyecto, a excepción de dos as
 ### 2. Información general de diseño de alto nivel, arquitectura, patrones, mejores prácticas utilizadas
 El proyecto se cimenta sobre la implementación de un  `clúster Kubernetes` con alta disponibilidad en `AWS IaaS`, utilizando `microk8s` como se muestra en el siguiente diagrama de arquitectura:
 
-![Add a heading](https://github.com/user-attachments/assets/66f55aa4-00fa-437d-909d-62a823a43b50)
+![image](https://github.com/user-attachments/assets/66cfa784-8439-4d4f-8ee3-a4cacef37483)
 
 
 ### Componentes principales
@@ -68,7 +68,6 @@ Drupal es el `CMS principal` usado para el proyecto, desplegado mediante una ima
 #### 3.2. Servicios en Kubernetes:
 
 - `microk8s` es la solución usada para implementar el clúster `Kubernetes` en AWS, permitiendo la orquestación y gestión de los contenedores en una infraestructura de alta disponibilidad.
-- `NGINX Ingress Controller` configurado como balanceador de carga para distribuir el tráfico entre las instancias de `Drupal` en el clúster.
 - Balanceo de carga adicional mediante `AWS Load Balancer` (`ALB`), gestionando la entrada y salida del tráfico `HTTP` y `HTTPS` al clúster desde el exterior.
 
 #### 3.3. Base de Datos:
