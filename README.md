@@ -3,94 +3,89 @@
 ## Estudiantes
 - **Isis Catitza Amaya Arbeláez**, [icamayaa@eafit.edu.co](mailto:icamayaa@eafit.edu.co)
 - **Santiago Alberto Rozo Silva**, [sarozos@eafit.edu.co](mailto:sarozos@eafit.edu.co)
-
+- **Santiago Alberto Rozo Silva**, [sarozos@eafit.edu.co](mailto:sarozos@eafit.edu.co)
+- **Santiago Alberto Rozo Silva**, [sarozos@eafit.edu.co](mailto:sarozos@eafit.edu.co)
+  
 ## Profesor
 - **Álvaro Enrique Ospina Sanjuan**, [aeospinas@eafit.edu.co](mailto:aeospinas@eafit.edu.co)
 
-# Reto No 2
+# Proyecto No 2
 
 ## 1. Breve descripción de la actividad
-La actividad consiste en desplegar un sistema `CMS Drupal` en un `cluster Kubernetes` en la nube con alta disponibilidad y autoescalado. Este clúster debe incluir un dominio propio con `SSL` (`reto2.sudominio.tld`) y un balanceador de carga `Nginx`. Además, contará con dos servidores adicionales: uno para la base de datos (`DBServer`) usando `Docker` o instalación nativa, y otro como servidor de archivos (`FileServer`) implementando `NFS`. Se usará un servicio gestionado en nube como `EKS` de `AWS` o `Kubernetes` de `GCP`.
+
+La actividad consiste en desplegar la aplicación del Reto 2 en un `clúster Kubernetes` con alta disponibilidad en `AWS IaaS`, utilizando `microk8s` para configurar el clúster en máquinas virtuales. El despliegue debe incluir un servidor de archivos `NFS` para volúmenes compartidos, y una capa de acceso al clúster implementada con `Service`, `Ingress` o un balanceador. Además, debe cumplir con los requisitos del Reto 2: un dominio propio con `HTTPS`, balanceador de carga, base de datos externa y sistema de archivos externos a la capa de servicios (app).
+
 
 ## 1.1. Aspectos cumplidos o desarrollados
-- Diagrama de arquitectura.
-- Clúster de `Kubernetes` desplegado en `AWS` usando `EKS`.
-- Despliegue de `CMS Drupal` en el clúster.
-- Balanceador de carga implementado con un `Ingress Nginx` y el balanceador de carga nativo de `AWS`.
-- Implementación de una base de datos `MySQL 8.0.4-debian` en el clúster.
-- Uso del servicio `EFS` para el sistema de archivos.
-- Implementación de un dominio personalizado (`reto2.site`) en `Hostinger`.
-- Certificado `SSL` implementado con `Let's Encrypt`.
-- Documentación.
+- Diagrama de arquitectura detallado.
+- Despliegue de un clúster de `Kubernetes` en `AWS` utilizando `microk8s`.
+- Implementación de la aplicación en el clúster, basada en el `CMS Drupal`.
+- Base de datos `MySQL 8.0.4-debian` desplegada en el clúster.
+- Integración de un sistema de archivos compartido mediante `NFS`.
+- Documentación completa del proyecto.
 
 ## 1.2. Aspectos NO cumplidos o desarrollados
-El único aspecto que no se logró cumplir en el proyecto fue la alta disponibilidad en la base de datos. Esto se debe a que solo se cuenta con una instancia de base de datos `MySQL 8.0.4-debian` implementada en el clúster. Al no tener una configuración redundante, esta instancia representa un único punto de fallo, por lo que en caso de falla, la disponibilidad del sistema se vería afectada.
+Se cumplieron la mayoría de los requisitos del proyecto, a excepción de dos aspectos:
+1. **Persistencia en la Base de Datos**: No se logró implementar una configuración de alta disponibilidad en la base de datos `MySQL`, ya que se utilizó una única instancia sin redundancia. Esto representa un único punto de fallo en el sistema, afectando la disponibilidad en caso de falla.
+2. **Balanceador de Carga con Dominio**: No se logró hacer funcionar completamente el balanceador de carga junto con el dominio personalizado configurado.
+
 
 ### 2. Información general de diseño de alto nivel, arquitectura, patrones, mejores prácticas utilizadas
-El proyecto se cimenta sobre la implementación de un clúster de `Kubernetes` con alta disponibilidad para un `CMS Drupal` como se muestra en el siguiente diagrama de arquitectura:
+El proyecto se cimenta sobre la implementación de un  `clúster Kubernetes` con alta disponibilidad en `AWS IaaS`, utilizando `microk8s` como se muestra en el siguiente diagrama de arquitectura:
 
 ![Add a heading](https://github.com/user-attachments/assets/66f55aa4-00fa-437d-909d-62a823a43b50)
 
 
 ### Componentes principales
-#### 2.1.1. Componentes principales
-- Se implementa un clúster `Kubernetes` administrado mediante `Amazon EKS` (`Elastic Kubernetes Service`) que ofrece alta disponibilidad y escalabilidad para el despliegue de servicios de contenedores, en este caso, el `CMS Drupal`.
-- Drupal se ejecuta en dos `pods` dentro del clúster, cada uno como una instancia de aplicación para manejar el tráfico y distribuir la carga, esto asegura una mayor disponibilidad y permite el balanceo de carga entre las instancias para responder a múltiples solicitudes de usuarios.
-- Se configura una instancia de `MySQL 8.0.4-debian` en el clúster como base de datos única para almacenar y gestionar los datos de `Drupal`, esta instancia facilita el manejo de datos transaccionales y es accesible desde los `pods` de Drupal en el clúster.
-- Amazon EFS (Elastic File System) se usa como sistema de archivos compartido para los pods de Drupal. EFS permite que los datos y archivos se mantengan disponibles y sean accesibles de forma persistente entre los distintos nodos en el clúster, asegurando redundancia y durabilidad.
-  
-#### 2.1.2. Comunicación y Balanceo de Carga
-- Se configura un `Ingress Controller` de `Nginx` en el clúster para distribuir el tráfico entre las instancias de `Drupal`; el balanceador de carga nativo de `AWS` (`ALB`) también se utiliza en conjunto para gestionar el tráfico externo, garantizando que las solicitudes de los usuarios se repartan eficientemente y brindando una capa adicional de disponibilidad y redundancia.
-- Para asegurar la comunicación entre los usuarios y el sitio, se implementa un certificado `SSL` mediante `Let’s Encrypt`, esto permite la comunicación encriptada en el dominio personalizado, ademas ayuda a garantizar la privacidad y seguridad de los datos.
-- Se adquiere e implementa el dominio `reto2.site` en `Hostinger`, el cual se configura para apuntar al balanceador de carga de `AWS`, permitiendo que los usuarios accedan de manera directa y sencilla a la aplicación `Drupal` en el clúster.
 
+#### 2.1.1. Componentes principales
+
+- Se implementa un clúster `Kubernetes` en `AWS IaaS` mediante `microk8s` para lograr alta disponibilidad y escalabilidad en el despliegue de servicios de contenedores, en este caso, el `CMS Drupal`.
+- Drupal se ejecuta en dos `pods` dentro del clúster, configurados como instancias de aplicación que manejan el tráfico y distribuyen la carga. Esto asegura mayor disponibilidad y permite el balanceo de carga entre las instancias para responder a múltiples solicitudes de usuarios.
+- Se despliega una instancia de `MySQL 8.0.4-debian` como base de datos en el clúster, lo cual facilita el manejo de datos transaccionales y es accesible desde los `pods` de Drupal, aunque esta configuración actualmente carece de alta disponibilidad.
+- Se utiliza un servidor de archivos `NFS` como sistema de almacenamiento compartido para los pods de Drupal, permitiendo que los datos y archivos estén disponibles de forma persistente y accesibles entre los nodos del clúster, asegurando redundancia y durabilidad.
+  
 #### 2.2. Patrones
-- Estructura modular y separación de responsabilidades segmentando la base de datos, la aplicación y el almacenamiento en diferentes servicios (`MySQL`, `Drupal` y `EFS`).
-- Despliegue declarativo mediante manifiestos de `Kubernetes` (archivos `YAML`) para definir el despliegue de cada componente, facilitando la reproducción y escalabilidad del entorno.
-- Patrón de alta disponibilidad mediante el uso de múltiples instancias de `Drupal` junto con el balanceador de carga y el almacenamiento compartido en `EFS`.
+- Estructura modular y separación de responsabilidades, segmentando la base de datos, la aplicación y el almacenamiento en diferentes servicios (`MySQL`, `Drupal` y `NFS`).
+- Despliegue declarativo mediante manifiestos de `Kubernetes` (`YAML`) para definir cada componente, facilitando la reproducibilidad y escalabilidad del entorno.
+- Patrón de alta disponibilidad mediante el uso de múltiples instancias de `Drupal`, balanceador de carga y almacenamiento compartido en `NFS`.
 
 #### 2.3. Buenas prácticas
-- Gestión de conexiones seguras (`SSL`).
-- Manejo de errores y escalabilidad.
-- Documentación y comentarios.
-- Automatización mediante declaración de manifiestos.
-- Buena Gestión de Recursos.
+- Manejo de errores y escalabilidad en los servicios desplegados.
+- Documentación completa del proyecto y comentarios en los archivos de configuración.
+- Automatización mediante el uso de manifiestos para asegurar coherencia en el despliegue.
+- Buena gestión de recursos, optimizando el uso de instancias y almacenamiento en el clúster.
+
 
 ### 3. Descripción del ambiente de desarrollo y técnico: lenguaje de programación, librerías, paquetes, etc., con sus números de versiones.
 
-El proyecto implementa una infraestructura de alta disponibilidad y escalabilidad para un sitio Drupal en un clúster `Kubernetes`, desplegado en `AWS` usando `Amazon EKS`. A continuación se describe el ambiente técnico y los componentes utilizados:
+El proyecto implementa una infraestructura de alta disponibilidad y escalabilidad para un sitio Drupal en un clúster `Kubernetes`, desplegado en `AWS` usando `microk8s`. A continuación se describe el ambiente técnico y los componentes utilizados:
 
 #### 3.1. Lenguaje de Programación y Aplicación Principal:
 
- Drupal es el `CMS principal` usado para el proyecto, desplegado mediante una imagen `Docker` de `Bitnami`
-  
+Drupal es el `CMS principal` usado para el proyecto, desplegado mediante una imagen `Docker` de `Bitnami`.
+
 #### 3.2. Servicios en Kubernetes:
 
-- `Amazon Elastic Kubernetes Service` (`EKS`) proporciona la orquestación del clúster `Kubernetes`, facilitando el despliegue y gestión de los contenedores en una infraestructura de nube escalable.
-- `NGINX Ingress Controller` implementado como balanceador de carga en la capa de aplicación para distribuir el tráfico entre las instancias de `Drupal` en el clúster.
-- `AWS Load Balancer` (`ELB`) utilizado como balanceador de carga adicional para manejar la entrada y salida del tráfico `HTTP` y `HTTPS` al clúster desde el exterior.
+- `microk8s` es la solución usada para implementar el clúster `Kubernetes` en AWS, permitiendo la orquestación y gestión de los contenedores en una infraestructura de alta disponibilidad.
+- `NGINX Ingress Controller` configurado como balanceador de carga para distribuir el tráfico entre las instancias de `Drupal` en el clúster.
+- Balanceo de carga adicional mediante `AWS Load Balancer` (`ALB`), gestionando la entrada y salida del tráfico `HTTP` y `HTTPS` al clúster desde el exterior.
 
 #### 3.3. Base de Datos:
 
-`MySQL 8.0.4` (`Debian` es la base de datos `MySQL` que está desplegada dentro del clúster `Kubernetes`. Esta versión específica de `MySQL` fue seleccionada por su estabilidad y compatibilidad con `Drupal`.
-  
+`MySQL 8.0.4-debian` es la base de datos utilizada para el despliegue dentro del clúster `Kubernetes`. Esta versión específica de `MySQL` se seleccionó por su estabilidad y compatibilidad con `Drupal`.
+
 #### 3.4. Sistema de Archivos:
 
-`Amazon Elastic File System` (`EFS`) proporciona un sistema de archivos compartido y persistente para los contenedores en el clúster. `AWS EFS` permite un almacenamiento de alta disponibilidad, accesible desde múltiples instancias dentro del clúster, y es usado para almacenar archivos estáticos y contenido generado por el usuario en `Drupal`.
+Un servidor de archivos `NFS` proporciona un sistema de archivos compartido y persistente para los contenedores en el clúster. Este `NFS`, montado y gestionado manualmente en una instancia de `Ubuntu` en AWS, permite el almacenamiento accesible desde múltiples instancias dentro del clúster y se utiliza para almacenar archivos estáticos y contenido generado por el usuario en `Drupal`.
 
-#### 3.5. Certificados y Seguridad:
+#### 3.5. Otras Herramientas y Librerías:
 
-El certificado `SSL` se implementa usando `Let's Encrypt`, para asegurar la comunicación `HTTPS` en el dominio.
-
-#### 3.6. Dominio:
-`Hostinger` (`reto2.site`) Es dónde se registra y administra el dominio, permitiendo la asignación de un nombre de dominio personalizado y gestión de `DNS` para el balanceador de carga en `AWS`.
-
-#### 3.7. Otras Herramientas y Librerías:
-
-- `kubectl` para gestionar los recursos del clúster `Kubernetes`.
-- `AWS CLI` utilizado para conectarse por medio de `SSH` a el clúster de `Kubernetes`.
-- `Helm` utilizado para facilitar el despliegue y la gestión de aplicaciones en el clúster.
-
+- **`kubectl`** para gestionar los recursos del clúster `Kubernetes` en `microk8s`.
+- **`AWS CLI`** utilizado para conectarse al clúster y gestionar las configuraciones de `AWS`.
+- **`Helm`** empleado para simplificar el despliegue y la gestión de aplicaciones en el clúster `Kubernetes`.
+- **`OpenSSH`** utilizado para establecer conexiones seguras `SSH` hacia las instancias en `AWS`.
+- **`nfs-kernel-server`** y **`nfs-common`** para configurar y manejar el servidor `NFS` en `Ubuntu` y permitir el montaje del sistema de archivos en `Kubernetes`.
 
 ### 4. Descripción del ambiente de EJECUCIÓN (en producción) lenguaje de programación, librerias, paquetes, etc, con sus numeros de versiones.
 
