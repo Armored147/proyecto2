@@ -99,8 +99,8 @@ kubectl cluster-info
 En nuestro caso la inforación arrojada de esta operación es la siguiente:
 
 ```bash
-Kubernetes control plane is running at https://0713612045000A113B198A3B9AAEB7BD.gr7.us-east-1.eks.amazonaws.com
-CoreDNS is running at https://0713612045000A113B198A3B9AAEB7BD.gr7.us-east-1.eks.amazonaws.com/api/v1/namespaces/kube-system/services/kube-dns:dns/proxy
+Kubernetes control plane is running at https://127.0.0.1:16443
+CoreDNS is running at https://127.0.0.1:16443/api/v1/namespaces/kube-system/services/kube-dns:dns/proxy
 ```
 
 Luego comprobamos la información general de los pods con el siguiente comando:
@@ -112,10 +112,10 @@ kubectl get nodes -o wide
 En nuestro caso la inforación arrojada de esta operación es la siguiente:
 
 ```bash
-NAME                              STATUS   ROLES    AGE   VERSION               INTERNAL-IP       EXTERNAL-IP      OS-IMAGE         KERNEL-VERSION                  CONTAINER-RUNTIME
-ip-192-168-11-45.ec2.internal     Ready    <none>   15h   v1.31.0-eks-a737599   192.168.11.45     44.203.226.125   Amazon Linux 2   5.10.226-214.880.amzn2.x86_64   containerd://1.7.22
-ip-192-168-219-158.ec2.internal   Ready    <none>   15h   v1.31.0-eks-a737599   192.168.219.158   <none>           Amazon Linux 2   5.10.226-214.880.amzn2.x86_64   containerd://1.7.22
-ip-192-168-222-225.ec2.internal   Ready    <none>   15h   v1.31.0-eks-a737599   192.168.222.225   <none>           Amazon Linux 2   5.10.226-214.880.amzn2.x86_64   containerd://1.7.22
+NAME                  STATUS   ROLES    AGE    VERSION   INTERNAL-IP     EXTERNAL-IP   OS-IMAGE            KERNEL-VERSION        CONTAINER-RUNTIME
+ip-172-31-16-153      Ready    <none>   4d5h   v1.28.14  172.31.16.153   <none>        Ubuntu 24.04.1 LTS  6.8.0-1017-aws       containerd://1.6.28
+ip-172-31-18-26       Ready    <none>   4d5h   v1.28.14  172.31.18.26    <none>        Ubuntu 24.04.1 LTS  6.8.0-1017-aws       containerd://1.6.28
+ip-172-31-28-179      Ready    <none>   4d5h   v1.28.14  172.31.28.179   <none>        Ubuntu 24.04.1 LTS  6.8.0-1017-aws       containerd://1.6.28
 ```
 
 ### 4.2. Implementación de MicroK8s en AWS y Configuración de NFS.
