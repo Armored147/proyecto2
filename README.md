@@ -118,7 +118,7 @@ ip-192-168-219-158.ec2.internal   Ready    <none>   15h   v1.31.0-eks-a737599   
 ip-192-168-222-225.ec2.internal   Ready    <none>   15h   v1.31.0-eks-a737599   192.168.222.225   <none>           Amazon Linux 2   5.10.226-214.880.amzn2.x86_64   containerd://1.7.22
 ```
 
-### 4.2. Implementación de MicroK8s en AWS.
+### 4.2. Implementación de MicroK8s en AWS y Configuración de NFS.
 
 Para deplegar el proyecto en el ambiente de `AWS`, se deben de seguir los pasos descritos a continuacion.
 
@@ -221,6 +221,8 @@ Por último, se deja un enlace a la documentación utilizada para esta sección:
 [Deploying MicroK8s on AWS: A Step-by-Step Guide](https://www.cloudthat.com/resources/blog/deploying-microk8s-on-aws-a-step-by-step-guide)
 
 **4.2.2. Configuración de NFS Mount en Ubuntu 20.04** 
+
+En este tutorial, llamaremos `host` al servidor que comparte sus directorios, y `cliente` al servidor que los monta.
 
 #### Paso 1: Descargar e instalar componentes necesarios
 
@@ -336,121 +338,18 @@ Agrega los montajes:
 host_ip:/var/nfs/general    /nfs/general   nfs auto,nofail,noatime,nolock,intr,tcp,actimeo=1800 0 0
 host_ip:/home               /nfs/home      nfs auto,nofail,noatime,nolock,intr,tcp,actimeo=1800 0 0
 ```
+Por último, se deja un enlace a la documentación utilizada para esta sección:
 
-**4.4. Instalar controladores para EFS** 
+[How To Set Up an NFS Mount on Ubuntu 20.04](https://www.digitalocean.com/community/tutorials/how-to-set-up-an-nfs-mount-on-ubuntu-20-04-es#paso-2-crear-los-directorios-compartidos-en-el-host)
 
- Instalaremos los controladores necesarios para que EFS pueda ser utilizado en el clúster.
-1. Instalamos Helm:
-```bash
-curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
-```
-2. Agregar el repositorio del controlador CSI de EFS y actualizar Helm:
-```bash
-helm repo add aws-efs-csi-driver https://kubernetes-sigs.github.io/aws-efs-csi-driver/
-helm repo update
-```
-3. Instalar el controlador CSI de Amazon EFS:
-```bash
-helm upgrade --install aws-efs-csi-driver --namespace kube-system aws-efs-csi-driver/aws-efs-csi-driver
-```
-Esto desplegará el controlador CSI de EFS en tu clúster EKS, lo que te permitirá utilizar EFS para el almacenamiento persistente en tu despliegue de WordPress. De igual forma se deja la información oficial de Helm en el siguiente enlace:
 
-[Instalación de Helm](https://helm.sh/docs/intro/install/)
-
-**4.5.  Instalar ingress-nginx en el cluster.** 
-
-Para utilizar el balanceador de carga con nginx es necesario tener instalado en el cluster ingress-nginx como se explica a continuación:
-
-1. Aplicar el manifiesto de Ingress NGINX.
-
-```bash
-kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/cloud/deploy.yaml
-```
-2. Verificar que el pod del controlador de Ingress esté en ejecución.
-
-```bash
-kubectl get pods --namespace ingress-nginx
-```
-3. Comprobar que el controlador Ingress NGINX tenga una IP pública asignada.
-
-```bash
-kubectl get service ingress-nginx-controller --namespace ingress-nginx
-```
-
-**4.6.  Aplicar los archivo YAML.** 
+**4.3.  Aplicar los archivo YAML.** 
 
 Para la aplicación de la imagen de Drupal, utilizaremos la imagen proporcionada por Bitnami. A continuación se detalla la documentación oficial que se puede consultar para obtener la información del paso a paso para instalar está imagen en nuestro clúster:
 Documentación oficial de Bitnami Drupal](https://hub.docker.com/r/bitnami/drupal)
 
-**4.7. Certificado SSL.**
 
-En esta sección, abordaremos el proceso de creación de un certificado SSL para asegurar la comunicación entre el servidor y los clientes. Para usos prácticos haremos uso de la plataforma Let's Encrypt para proteger la información sensible y garantizar la integridad de los datos transmitidos, para ello seguiremos los siguientes pasos:
-
-1. Instalar cert-manager:
- ```bash
-kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.9.1/cert-manager.yaml
-```
-2. Verifica que cert-manager está en ejecución:
- ```bash
-kubectl get pods --namespace cert-manager
-```
-3. Configurar un ClusterIssuer para `Let's Encrypt`:
-Crea un recurso  `ClusterIssuer` para `Let's Encrypt`, que permite emitir certificados SSL para los dominios del clúster. Crea un archivo YAML llamado `letsencrypt-clusterissuer.yaml` con el siguiente contenido:
- ```bash
-apiVersion: cert-manager.io/v1
-kind: ClusterIssuer
-metadata:
-  name: letsencrypt-prod
-spec:
-  acme:
-    server: https://acme-v02.api.letsencrypt.org/directory
-    email: tu-email@example.com
-    privateKeySecretRef:
-      name: letsencrypt-prod
-    solvers:
-    - http01:
-        ingress:
-          class: nginx
-
-```
-**Nota:** Reemplaza `tu-email@example.com` con tu dirección de correo electrónico para recibir notificaciones relacionadas con la renovación del certificado.
-
-4. Aplica el archivo `ClusterIssuer`:
- ```bash
-kubectl apply -f letsencrypt-clusterissuer.yaml
-```
-5. Solicitar un certificado SSL:
-Crea un archivo `YAML` llamado `certificate.yaml` con el siguiente contenido, reemplazando `tudominio.com` con tu dominio.
- ```bash
-apiVersion: cert-manager.io/v1
-kind: Certificate
-metadata:
-  name: tudominio-cert
-  namespace: default
-spec:
-  secretName: tudominio-tls
-  issuerRef:
-    name: letsencrypt-prod
-    kind: ClusterIssuer
-  commonName: tudominio.com
-  dnsNames:
-  - tudominio.com
-```
-6. Aplica el archivo Certificate:
- ```bash
-kubectl apply -f certificate.yaml
-```
-Cert-Manager ahora solicitará automáticamente un certificado de Let's Encrypt para tu dominio y almacenará el certificado y la clave privada en el secreto tudominio-tls en el espacio de nombres default.
-
-7. Verificar el estado del certificado
- ```bash
-kubectl describe certificate tudominio-cert --namespace default
-```
-Por último en el siguiente enlace se deja la información oficial sobre Let's Encrypt:
-[Let's Encrypt - Página Oficial](https://letsencrypt.org/getting-started/)
-
-
-### 4.7. Resultados
+### 4.4. Resultados
 
 
 
