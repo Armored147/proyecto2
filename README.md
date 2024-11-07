@@ -82,7 +82,6 @@ Un servidor de archivos `NFS` proporciona un sistema de archivos compartido y pe
 #### 3.5. Otras Herramientas y Librerías:
 
 - **`kubectl`** para gestionar los recursos del clúster `Kubernetes` en `microk8s`.
-- **`AWS CLI`** utilizado para conectarse al clúster y gestionar las configuraciones de `AWS`.
 - **`Helm`** empleado para simplificar el despliegue y la gestión de aplicaciones en el clúster `Kubernetes`.
 - **`OpenSSH`** utilizado para establecer conexiones seguras `SSH` hacia las instancias en `AWS`.
 - **`nfs-kernel-server`** y **`nfs-common`** para configurar y manejar el servidor `NFS` en `Ubuntu` y permitir el montaje del sistema de archivos en `Kubernetes`.
@@ -125,84 +124,218 @@ Para deplegar el proyecto en el ambiente de `AWS`, se deben de seguir los pasos 
 
 **4.2.1. Configuración del clúster en AWS**
 
-Para realizar la creación y configuración del entorno de desarollo en este caso, se debe seguir el tutorial disponible en el siguiente enlace de YouTube hasta el video número 8:
+A continuación se detalla el proceso para lanzar y configurar una instancia EC2 en AWS con MicroK8s:
 
-[Playlist del tutorial de Kubernetes en AWS](https://www.youtube.com/playlist?list=PLkqaOL-oB94HAIRkA_5qdqk-x-1Hgo4i2)
+#### Paso 1: Iniciar una instancia EC2 en AWS
 
-Es importante que, en el paso de creación del clúster, selecciones instancias `t3.small` para reducir costos, esto en el video `04-Tutorial. Crear un cluster Kubernetes en AWS. Crear los nodos`, al llegar al minuto `5:40`.
+- **Tipo de Instancia**: Selecciona una instancia de tamaño mediano, ya que esta proporciona un equilibrio adecuado entre rendimiento de CPU y memoria, ideal para ejecutar MicroK8s de manera eficiente.
+- **Sistema Operativo**: Optamos por Ubuntu 22.04 LTS, debido a su estabilidad y compatibilidad con MicroK8s.
+- **Espacio en Disco**: Configura un volumen de 20 GB para almacenar la instalación de MicroK8s y soportar las cargas de trabajo.
+- **Grupo de Seguridad**: Define un grupo de seguridad que permita la comunicación necesaria para Kubernetes, incluyendo los puertos específicos.
 
-**Nota:** En el video `03 - Crear un clúster Kubernetes en AWS`, al llegar al minuto `1:42` durante la configuración del clúster, para fines prácticos, se omite el proceso de creación de roles y se utiliza el LabRole asignado por defecto. Del mismo modo, en el video `04 - Crear los nodos`, al llegar al minuto `1:35` en la configuración del grupo de nodos, utiliza `LabRole` en lugar de crear un nuevo rol.
+#### Configuración del Grupo de Seguridad
 
-**4.2.2. Uso de AWS CLI** 
+Establece las siguientes reglas en el grupo de seguridad para habilitar la conectividad:
 
-Para terminos prácticos se sugiere hacer uso de `WSL` (Windows Subsystem for Linux) para realizar el trabajo con el clúster, por lo cuál se deja un paso a paso de lo que se debe realizar para dicha instalación y conexión:
-1. Actualizar el sistema (opcional pero recomendado):
+1. **SSH (Puerto 22)**: Permite el acceso remoto a través de SSH para gestionar la instancia.
+2. **HTTP (Puerto 80)** y **HTTPS (Puerto 443)**: Habilita el tráfico web necesario para acceder a las aplicaciones.
+3. **Reglas TCP Personalizadas**: Abre los puertos específicos requeridos por los servicios de MicroK8s.
+
+#### Paso 2: Definir el Nombre del Host
+
+Conéctate a la instancia mediante SSH y asigna un nombre al host para identificar el nodo:
+
+```bash
+sudo hostnamectl set-hostname microk8s-node1
+```
+
+#### Paso 3: Instalar MicroK8s
+
+Utiliza Snap, el administrador de paquetes de Ubuntu, para instalar MicroK8s de la siguiente manera:
+
+```bash
+sudo snap install microk8s --classic --channel=1.28/stable
+```
+
+#### Paso 4: Configuración de Permisos de Usuario
+
+Asigna el usuario actual al grupo de MicroK8s y ajusta los permisos de los directorios necesarios para su correcto funcionamiento:
+
+```bash
+sudo usermod -a -G microk8s $USER
+sudo mkdir -p ~/.kube
+sudo chown -f -R $USER ~/.kube
+```
+
+Reinicia la instancia para que los cambios de permisos tomen efecto:
+
+```bash
+sudo reboot
+```
+
+#### Paso 5: Comprobar la Instalación de MicroK8s
+
+Una vez que la instancia se haya reiniciado, verifica que MicroK8s esté instalado y operativo:
+
+```bash
+microk8s status --wait-ready
+microk8s version
+microk8s inspect
+```
+
+Para obtener detalles del nodo, utiliza el siguiente comando:
+
+```bash
+cat /var/snap/microk8s/current/var/kubernetes/backend/localnode.yaml
+```
+
+#### Paso 6: Crear un Alias para `kubectl`
+
+Para evitar conflictos con otras instalaciones de `kubectl`, puedes crear un alias para los comandos de `kubectl` de MicroK8s:
+
+1. Abre el archivo `.bashrc` para editarlo:
+
+   ```bash
+   nano ~/.bashrc
+   ```
+
+2. Agrega la siguiente línea al archivo:
+
+   ```bash
+   alias mkubectl='microk8s kubectl'
+   ```
+
+3. Recarga el archivo `.bashrc` para aplicar los cambios:
+
+   ```bash
+   source ~/.bashrc
+   ```
+
+Ahora puedes usar `mkubectl` para ejecutar comandos en Kubernetes. Por ejemplo:
+
+```bash
+mkubectl get nodes
+```
+Por último, se deja un enlace a la documentación utilizada para esta sección:
+
+[Deploying MicroK8s on AWS: A Step-by-Step Guide](https://www.cloudthat.com/resources/blog/deploying-microk8s-on-aws-a-step-by-step-guide)
+
+**4.2.2. Configuración de NFS entre Servidor y Cliente** 
+
+#### Paso 1: Descargar e instalar componentes necesarios
+
+**En el host**
+
+Actualiza el índice de paquetes y luego instala `nfs-kernel-server` para compartir directorios:
+
 ```bash
 sudo apt update
-sudo apt upgrade
+sudo apt install nfs-kernel-server
 ```
-2. Instalar AWS CLI:
+
+**En el cliente**
+
+Actualiza el índice de paquetes e instala `nfs-common` para la funcionalidad NFS:
+
 ```bash
-sudo apt install awscli -y
+sudo apt update
+sudo apt install nfs-common
 ```
-3. Verificar la instalación: Asegúrate de que AWS CLI se haya instalado correctamente ejecutando:
+
+#### Paso 2: Crear directorios compartidos en el host
+
+Ejemplo de un directorio compartido general y otro para directorios de inicio:
+
 ```bash
-aws --version
+sudo mkdir -p /var/nfs/general
+sudo chown nobody:nogroup /var/nfs/general
 ```
-4. Configurar AWS CLI:
+
+#### Paso 3: Configurar las exportaciones NFS en el host
+
+Edita el archivo `/etc/exports` y agrega los directorios a compartir:
+
 ```bash
-aws configure
+sudo nano /etc/exports
 ```
-Se te pedirá que ingreses:
 
-- AWS Access Key ID: ingresa tu clave de acceso.
-- AWS Secret Access Key: ingresa tu clave secreta.
-- Default region name: ingresa la región (ej. us-west-2).
-- Default output format: puedes dejarlo en blanco o ingresar json, text, o table.
-**Nota:** Esta información se puede encontrar en la sección de `Launch AWS Academy Learner Lab`, en la sección de la consola denominada `i AWS Details` realizando click sobre el botón `Show` ubicado en el apartado de `AWS CLI:`
-![image](https://github.com/user-attachments/assets/61af7bbf-bb74-476d-bfe3-416e74326091)
+Añade las siguientes líneas:
 
-5. Configurar las credenciales: Realizamos el siguiente comando para modificar el archivo `credentials`, pegamos la información encontrada en la sección de `aws_session_token` del paso anterior, en el espacio con el mismo nombre que se encuentra en el archivo.
+```plaintext
+/var/nfs/general    client_ip(rw,sync,no_subtree_check)
+/home               client_ip(rw,sync,no_root_squash,no_subtree_check)
+```
+
+Aplica los cambios reiniciando el servidor NFS:
+
 ```bash
-vim ~/.aws/credentials
+sudo systemctl restart nfs-kernel-server
 ```
-6. Verificar conexión: Paea verificar la conexión podemos correr el siguiente comando que nos describirá las instancias EC2 de nuestro clúster:
+
+#### Paso 4: Ajustar el firewall en el host
+
+Permite el tráfico NFS en el puerto 2049 desde la IP del cliente:
+
 ```bash
-aws ec2 describe-instances
+sudo ufw allow from client_ip to any port nfs
 ```
-Por último, se deja un enlace a la documentación oficial de AWS sobre AWS CLI:
 
-[Documentación de instalación de AWS CLI en Linux](https://docs.aws.amazon.com/cli/v1/userguide/install-linux.html#install-linux-path)
+#### Paso 5: Crear puntos de montaje en el cliente
 
-**4.3. Configurar el sistema de archivos EFS** 
+Crea los directorios de montaje en el cliente:
 
-La capa de archivos debe quedar configurada con el servicio `EFS de AWS`, por lo que debes seguir el siguiente tutorial para que el servicio `EFS` pueda ser utilizado en el `cluster K8`:
-
-[Crear un sistema de archivos EFS - Documentación del controlador CSI de AWS EFS](https://github.com/kubernetes-sigs/aws-efs-csi-driver/blob/master/docs/efs-create-filesystem.md)
-
-**Nota:** Se debe seguir todos los pasos que se especifican a excepción del paso para determinar la dirección IP del grupo de nodos, lo cuál para este ejercicio es indiferente.
-
-**Nota:** En la sección de creación del servicio EFS, en el paso b, al identificar el ID de cada subred en nuestra VPC, obtenemos una tabla como la siguiente:
 ```bash
-|                           DescribeSubnets                          |
-+------------------+--------------------+----------------------------+
-| AvailabilityZone |     CidrBlock      |         SubnetId           |
-+------------------+--------------------+----------------------------+
-|  region-codec    |  192.168.128.0/19  |  subnet-EXAMPLE6e421a0e97  |
-|  region-codeb    |  192.168.96.0/19   |  subnet-EXAMPLEd0503db0ec  |
-|  region-codec    |  192.168.32.0/19   |  subnet-EXAMPLEe2ba886490  |
-|  region-codeb    |  192.168.0.0/19    |  subnet-EXAMPLE123c7c5182  |
-|  region-codea    |  192.168.160.0/19  |  subnet-EXAMPLE0416ce588p  |
-+------------------+--------------------+----------------------------+
+sudo mkdir -p /nfs/general
+sudo mkdir -p /nfs/home
 ```
-Esta tabla nos indica las diferentes subredes de nuestra VPC, para las cuales realizaremos el paso C en cada una de las subredes especificadas allí.
-Por último crearemos el `access point` para nuestro servicio `EFS` en `AWS` para esto.
-1. Buscaremos el servicio EFS en la sección de `servicios` de `AWS`
-![image](https://github.com/user-attachments/assets/0857ad13-a6ea-468b-848f-0ae5ff87b60d)
-2. Estando ya en el servicio de `EFS` iremos a la parte izquierda y daremos click en `Access points`, esto nos redirigirá a un nuevo apartado dónde haremos click en `Create access point`.
-![image](https://github.com/user-attachments/assets/d2bba492-4ac4-49c3-9da0-c744261ce3fc)
-3. Por último configuraremos el access point con base en los siguientes parametros:
-![image](https://github.com/user-attachments/assets/f49f58a8-af4c-4589-9880-13a41772b12b)
+
+Monta los intercambios desde el host:
+
+```bash
+sudo mount host_ip:/var/nfs/general /nfs/general
+sudo mount host_ip:/home /nfs/home
+```
+
+Verifica el montaje:
+
+```bash
+df -h
+```
+
+#### Paso 6: Probar el acceso NFS
+
+**Intercambio general**
+
+Crea un archivo de prueba en `/nfs/general`:
+
+```bash
+sudo touch /nfs/general/general.test
+ls -l /nfs/general/general.test
+```
+
+**Intercambio de directorio de inicio**
+
+Crea un archivo de prueba en `/nfs/home`:
+
+```bash
+sudo touch /nfs/home/home.test
+ls -l /nfs/home/home.test
+```
+
+#### Paso 7: Configurar montajes NFS en el arranque
+
+Edita el archivo `/etc/fstab` en el cliente:
+
+```bash
+sudo nano /etc/fstab
+```
+
+Agrega los montajes:
+
+```plaintext
+host_ip:/var/nfs/general    /nfs/general   nfs auto,nofail,noatime,nolock,intr,tcp,actimeo=1800 0 0
+host_ip:/home               /nfs/home      nfs auto,nofail,noatime,nolock,intr,tcp,actimeo=1800 0 0
+```
 
 **4.4. Instalar controladores para EFS** 
 
