@@ -118,7 +118,7 @@ ip-192-168-219-158.ec2.internal   Ready    <none>   15h   v1.31.0-eks-a737599   
 ip-192-168-222-225.ec2.internal   Ready    <none>   15h   v1.31.0-eks-a737599   192.168.222.225   <none>           Amazon Linux 2   5.10.226-214.880.amzn2.x86_64   containerd://1.7.22
 ```
 
-### 4.2. Configuracion del clúster de Kubernetes y uso de AWS CLI.
+### 4.2. Implementación de MicroK8s en AWS.
 
 Para deplegar el proyecto en el ambiente de `AWS`, se deben de seguir los pasos descritos a continuacion.
 
@@ -220,7 +220,7 @@ Por último, se deja un enlace a la documentación utilizada para esta sección:
 
 [Deploying MicroK8s on AWS: A Step-by-Step Guide](https://www.cloudthat.com/resources/blog/deploying-microk8s-on-aws-a-step-by-step-guide)
 
-**4.2.2. Configuración de NFS entre Servidor y Cliente** 
+**4.2.2. Configuración de NFS Mount en Ubuntu 20.04** 
 
 #### Paso 1: Descargar e instalar componentes necesarios
 
