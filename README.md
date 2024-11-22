@@ -1,7 +1,7 @@
 # Tópicos Especiales en Telemática: C2466-ST0263-1716
 
 ## Estudiantes
-- **Santiago Alberto Rozo SIlva**, [ntovara@eafit.brightspace.com](mailto:sarozos@eafit.brightspace.com)
+- **Santiago Alberto Rozo SIlva**, [sarozos@eafit.brightspace.com](mailto:sarozos@eafit.brightspace.com)
 - **Isis Catitza Amaya Arbeláez**, [icamayaa@eafit.edu.co](mailto:icamayaa@eafit.edu.co)
 - **Samuel Oviedo Paz**, [soviedop@eafit.edu.co](mailto:soviedop@eafit.edu.co)
 - **Samuel Acosta Aristizabal**, [sacostaa1@eafit.edu.co](mailto:sacostaa1@eafit.edu.co)
